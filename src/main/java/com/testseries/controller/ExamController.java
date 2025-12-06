@@ -87,4 +87,22 @@ public class ExamController {
                 ExamResultResponse result = examService.getExamResult(examAttemptId, userId);
                 return ResponseEntity.ok(result);
         }
+
+        @Operation(summary = "Auto-save exam progress", description = "Saves current exam progress without submitting")
+        @PostMapping("/auto-save")
+        public ResponseEntity<java.util.Map<String, String>> autoSaveExam(
+                        @RequestBody com.testseries.dto.AutoSaveRequest request) {
+                examService.autoSaveExam(request);
+                return ResponseEntity.ok(java.util.Map.of(
+                                "status", "saved",
+                                "savedAt", java.time.LocalDateTime.now().toString()));
+        }
+
+        @Operation(summary = "Get time remaining", description = "Gets remaining time for an exam attempt")
+        @GetMapping("/{examAttemptId}/time-remaining")
+        public ResponseEntity<java.util.Map<String, Object>> getTimeRemaining(
+                        @PathVariable Long examAttemptId) {
+                java.util.Map<String, Object> timeInfo = examService.getTimeRemaining(examAttemptId);
+                return ResponseEntity.ok(timeInfo);
+        }
 }

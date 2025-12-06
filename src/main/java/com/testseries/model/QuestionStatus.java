@@ -6,12 +6,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "answers")
+@Table(name = "question_status")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Answer {
+public class QuestionStatus {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -25,18 +27,15 @@ public class Answer {
     @JoinColumn(name = "question_id", nullable = false)
     private Question question;
 
-    @Column(name = "selected_answer")
-    private String selectedAnswer; // A, B, C, or D
+    @Column(name = "status", nullable = false)
+    private String status; // NOT_VISITED, ANSWERED, NOT_ANSWERED, MARKED_FOR_REVIEW
 
-    @Column(name = "is_correct")
-    private Boolean isCorrect;
+    @Column(name = "last_updated")
+    private LocalDateTime lastUpdated;
 
-    @Column(name = "marks_obtained")
-    private Integer marksObtained;
-
-    @Column(name = "marked_for_review")
-    private Boolean markedForReview = false;
-
-    @Column(name = "time_spent_seconds")
-    private Integer timeSpentSeconds;
+    @PrePersist
+    @PreUpdate
+    protected void onUpdate() {
+        lastUpdated = LocalDateTime.now();
+    }
 }

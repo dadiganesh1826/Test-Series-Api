@@ -40,4 +40,17 @@ public class TestSeriesService {
         question.setTestSeries(testSeries);
         return questionRepository.save(question);
     }
+
+    public List<TestSeries> searchTestSeries(String query) {
+        return testSeriesRepository
+                .findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCaseAndIsActiveTrue(query, query);
+    }
+
+    public List<TestSeries> getTestSeriesByCategory(Long categoryId) {
+        return testSeriesRepository.findByCategoryIdAndIsActiveTrue(categoryId);
+    }
+
+    public List<TestSeries> getFeaturedTestSeries() {
+        return testSeriesRepository.findByFeaturedTrueAndIsActiveTrueOrderByFeaturedOrderAsc();
+    }
 }

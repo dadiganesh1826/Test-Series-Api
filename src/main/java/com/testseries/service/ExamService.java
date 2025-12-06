@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,6 +51,7 @@ public class ExamService {
         examAttempt.setTestSeries(testSeries);
         examAttempt.setTotalMarks(testSeries.getTotalMarks());
         examAttempt.setIsCompleted(false);
+        examAttempt.setStartTime(LocalDateTime.now());
 
         ExamAttempt saved = examAttemptRepository.save(examAttempt);
         log.info("Created exam attempt with ID: " + saved.getId());
@@ -77,6 +79,9 @@ public class ExamService {
             submissions = new ArrayList<>();
         }
 
+        // Clear existing autosaved answers to avoid duplicates
+        answerRepository.deleteByExamAttempt(examAttempt);
+
         for (SubmitExamRequest.AnswerSubmission submission : submissions) {
             if (submission.getQuestionId() == null) {
                 continue;
@@ -88,6 +93,9 @@ public class ExamService {
             answer.setExamAttempt(examAttempt);
             answer.setQuestion(question);
             answer.setSelectedAnswer(submission.getSelectedAnswer());
+            answer.setMarkedForReview(
+                    submission.getMarkedForReview() != null ? submission.getMarkedForReview() : false);
+            answer.setTimeSpentSeconds(submission.getTimeSpentSeconds());
 
             boolean isCorrect = question.getCorrectAnswer().equalsIgnoreCase(submission.getSelectedAnswer());
             answer.setIsCorrect(isCorrect);
@@ -105,10 +113,18 @@ public class ExamService {
         // answer.setExamAttempt(examAttempt)
         answerRepository.saveAll(answers);
 
+        LocalDateTime endTime = LocalDateTime.now();
         examAttempt.setScore(totalScore);
-        examAttempt.setSubmittedAt(LocalDateTime.now());
+        examAttempt.setSubmittedAt(endTime);
+        examAttempt.setEndTime(endTime);
         examAttempt.setIsCompleted(true);
         examAttempt.setIsPassed(totalScore >= examAttempt.getTestSeries().getPassingMarks());
+
+        // Calculate time spent in seconds
+        if (examAttempt.getStartTime() != null) {
+            long seconds = java.time.Duration.between(examAttempt.getStartTime(), endTime).getSeconds();
+            examAttempt.setTimeSpentSeconds((int) seconds);
+        }
 
         examAttemptRepository.save(examAttempt);
 
@@ -134,6 +150,13 @@ public class ExamService {
         List<ExamResultResponse.QuestionResult> questionResults = examAttempt.getAnswers().stream()
                 .map(answer -> {
                     Question q = answer.getQuestion();
+                    boolean isCorrect = false;
+                    Integer marksObtained = 0;
+                    if (answer.getSelectedAnswer() != null) {
+                        isCorrect = q.getCorrectAnswer().equalsIgnoreCase(answer.getSelectedAnswer());
+                        marksObtained = isCorrect ? q.getMarks() : 0;
+                    }
+
                     return new ExamResultResponse.QuestionResult(
                             q.getId(),
                             q.getQuestionText(),
@@ -143,8 +166,9 @@ public class ExamService {
                             q.getOptionD(),
                             q.getCorrectAnswer(),
                             answer.getSelectedAnswer(),
-                            answer.getIsCorrect(),
-                            answer.getMarksObtained(),
+                            isCorrect,
+                            marksObtained,
+                            q.getMarks(),
                             q.getExplanation());
                 })
                 .collect(Collectors.toList());
@@ -160,5 +184,63 @@ public class ExamService {
                 examAttempt.getIsPassed(),
                 examAttempt.getSubmittedAt(),
                 questionResults);
+    }
+
+    @Transactional
+    public void autoSaveExam(com.testseries.dto.AutoSaveRequest request) {
+        ExamAttempt examAttempt = examAttemptRepository.findById(request.getExamAttemptId())
+                .orElseThrow(() -> new RuntimeException("Exam attempt not found"));
+
+        if (examAttempt.getIsCompleted()) {
+            throw new RuntimeException("Exam already submitted");
+        }
+
+        // Delete existing answers for this attempt
+        answerRepository.deleteByExamAttempt(examAttempt);
+
+        // Save new answers
+        List<Answer> answers = new ArrayList<>();
+        for (com.testseries.dto.AutoSaveRequest.AnswerData answerData : request.getAnswers()) {
+            if (answerData.getSelectedAnswer() != null && !answerData.getSelectedAnswer().isEmpty()) {
+                Question question = questionRepository.findById(answerData.getQuestionId())
+                        .orElseThrow(() -> new RuntimeException("Question not found"));
+
+                Answer answer = new Answer();
+                answer.setExamAttempt(examAttempt);
+                answer.setQuestion(question);
+                answer.setSelectedAnswer(answerData.getSelectedAnswer());
+                answer.setMarkedForReview(
+                        answerData.getMarkedForReview() != null ? answerData.getMarkedForReview() : false);
+                answer.setTimeSpentSeconds(answerData.getTimeSpentSeconds());
+
+                answers.add(answer);
+            }
+        }
+
+        answerRepository.saveAll(answers);
+    }
+
+    public Map<String, Object> getTimeRemaining(Long examAttemptId) {
+        ExamAttempt examAttempt = examAttemptRepository.findById(examAttemptId)
+                .orElseThrow(() -> new RuntimeException("Exam attempt not found"));
+
+        Map<String, Object> response = new java.util.HashMap<>();
+
+        if (examAttempt.getStartTime() == null) {
+            response.put("timeRemaining", examAttempt.getTestSeries().getDurationMinutes() * 60);
+            response.put("expired", false);
+            return response;
+        }
+
+        long elapsedSeconds = java.time.Duration.between(examAttempt.getStartTime(), LocalDateTime.now()).getSeconds();
+        long totalSeconds = examAttempt.getTestSeries().getDurationMinutes() * 60L;
+        long remainingSeconds = totalSeconds - elapsedSeconds;
+
+        response.put("timeRemaining", Math.max(0, remainingSeconds));
+        response.put("expired", remainingSeconds <= 0);
+        response.put("startTime", examAttempt.getStartTime());
+        response.put("durationMinutes", examAttempt.getTestSeries().getDurationMinutes());
+
+        return response;
     }
 }

@@ -9,4 +9,11 @@ import java.util.List;
 @Repository
 public interface TestSeriesRepository extends JpaRepository<TestSeries, Long> {
     List<TestSeries> findByIsActiveTrue();
+
+    List<TestSeries> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCaseAndIsActiveTrue(String title,
+            String description);
+
+    List<TestSeries> findByCategoryIdAndIsActiveTrue(Long categoryId);
+
+    List<TestSeries> findByFeaturedTrueAndIsActiveTrueOrderByFeaturedOrderAsc();
 }

@@ -43,6 +43,31 @@ public class TestSeries {
     @Column(name = "is_active")
     private Boolean isActive = true;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    @Column(length = 20)
+    private String difficulty; // EASY, MEDIUM, HARD
+
+    @Column(length = 500)
+    private String tags;
+
+    @Column(name = "featured")
+    private Boolean featured = false;
+
+    @Column(name = "featured_order")
+    private Integer featuredOrder;
+
+    @Column(length = 2000)
+    private String instructions;
+
+    @Column(name = "exam_pattern", length = 1000)
+    private String examPattern;
+
+    @Column(name = "marking_scheme", length = 1000)
+    private String markingScheme;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

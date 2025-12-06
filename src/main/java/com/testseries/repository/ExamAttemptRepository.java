@@ -10,6 +10,10 @@ import java.util.Optional;
 @Repository
 public interface ExamAttemptRepository extends JpaRepository<ExamAttempt, Long> {
     List<ExamAttempt> findByUserIdOrderByStartedAtDesc(Long userId);
+
     List<ExamAttempt> findByUserIdAndIsCompletedTrue(Long userId);
+
     Optional<ExamAttempt> findByIdAndUserId(Long id, Long userId);
+
+    List<ExamAttempt> findByTestSeriesIdAndIsCompletedTrue(Long testSeriesId);
 }

@@ -34,6 +34,7 @@ public class ExamResultResponse {
         private String selectedAnswer;
         private Boolean isCorrect;
         private Integer marksObtained;
+        private Integer questionMarks;
         private String explanation;
     }
 }

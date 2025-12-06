@@ -9,16 +9,17 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SubmitExamRequest {
+public class AutoSaveRequest {
     private Long examAttemptId;
-    private List<AnswerSubmission> answers;
+    private List<AnswerData> answers;
+    private List<QuestionStatusDTO> questionStatuses;
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class AnswerSubmission {
+    public static class AnswerData {
         private Long questionId;
-        private String selectedAnswer; // A, B, C, or D
+        private String selectedAnswer;
         private Boolean markedForReview;
         private Integer timeSpentSeconds;
     }

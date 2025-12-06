@@ -48,6 +48,18 @@ public class ExamAttempt {
     @Column(name = "is_completed")
     private Boolean isCompleted = false;
 
+    @Column(name = "start_time")
+    private LocalDateTime startTime;
+
+    @Column(name = "end_time")
+    private LocalDateTime endTime;
+
+    @Column(name = "time_spent_seconds")
+    private Integer timeSpentSeconds;
+
+    @Column(name = "auto_submitted")
+    private Boolean autoSubmitted = false;
+
     @PrePersist
     protected void onCreate() {
         if (startedAt == null) {
