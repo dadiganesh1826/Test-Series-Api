@@ -17,7 +17,7 @@ public class Question {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "test_series_id", nullable = false)
+    @JoinColumn(name = "test_series_id", nullable = true)
     @JsonIgnore
     private TestSeries testSeries;
 
@@ -42,6 +42,9 @@ public class Question {
     @Column(nullable = false)
     private Integer marks;
 
+    @Column(name = "negative_marks")
+    private Double negativeMarks = 0.0;
+
     @Column(length = 500)
     private String explanation;
 
@@ -52,4 +55,8 @@ public class Question {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "topic_id")
     private Topic topic;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private QuestionStatus status = QuestionStatus.APPROVED;
 }

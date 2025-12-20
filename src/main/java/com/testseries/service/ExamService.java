@@ -27,6 +27,7 @@ public class ExamService {
     private final QuestionRepository questionRepository;
     private final TestSeriesService testSeriesService;
     private final UserService userService;
+    private final GamificationService gamificationService;
     private static final Logger log = LoggerFactory.getLogger(ExamService.class);
 
     @Transactional
@@ -127,6 +128,14 @@ public class ExamService {
         }
 
         examAttemptRepository.save(examAttempt);
+        
+        // Check for badges
+        try {
+            gamificationService.checkForBadges(examAttempt.getUser().getId());
+        } catch (Exception e) {
+            log.error("Error checking badges: " + e.getMessage());
+            // Don't fail the exam submission if gamification fails
+        }
 
         return buildExamResultResponse(examAttempt);
     }

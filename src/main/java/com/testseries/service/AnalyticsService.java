@@ -6,6 +6,7 @@ import com.testseries.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -16,6 +17,7 @@ public class AnalyticsService {
     private final ExamAttemptRepository examAttemptRepository;
     private final AnswerRepository answerRepository;
     private final SubjectRepository subjectRepository;
+    private final PracticeAttemptRepository practiceAttemptRepository;
 
     public Integer calculateRank(Long examAttemptId) {
         ExamAttempt attempt = examAttemptRepository.findById(examAttemptId)
@@ -172,5 +174,27 @@ public class AnalyticsService {
         }
 
         return timeAnalysisList;
+    }
+    public Integer getWeeklyProgress(Long userId) {
+        LocalDateTime oneWeekAgo = LocalDateTime.now().minusDays(7);
+        
+        // 1. Exam Questions
+        List<ExamAttempt> recentExams = examAttemptRepository.findByUserIdAndStartedAtAfter(userId, oneWeekAgo);
+        int examQuestions = recentExams.stream()
+                .mapToInt(e -> e.getAnswers().size())
+                .sum();
+                
+        // 2. Practice Questions
+        // Assuming findByUserIdAndStartedAtAfter exists or created
+        // If not, fetch all and filter in memory (might be slow but safe for now)
+        List<PracticeAttempt> recentPractice = practiceAttemptRepository.findByUserIdOrderByStartedAtDesc(userId).stream()
+                .filter(p -> p.getStartedAt().isAfter(oneWeekAgo))
+                .collect(Collectors.toList());
+                
+        int practiceQuestions = recentPractice.stream()
+                .mapToInt(PracticeAttempt::getQuestionsAttempted)
+                .sum();
+                
+        return examQuestions + practiceQuestions;
     }
 }

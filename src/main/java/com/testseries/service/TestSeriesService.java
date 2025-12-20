@@ -20,6 +20,10 @@ public class TestSeriesService {
         return testSeriesRepository.findByIsActiveTrue();
     }
 
+    public List<TestSeries> getAllTestSeries() {
+        return testSeriesRepository.findAll();
+    }
+
     public TestSeries getTestSeriesById(Long id) {
         return testSeriesRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Test series not found"));
@@ -31,6 +35,12 @@ public class TestSeriesService {
 
     @Transactional
     public TestSeries createTestSeries(TestSeries testSeries) {
+        if (testSeries.getIsActive() == null) {
+            testSeries.setIsActive(true);
+        }
+        if (testSeries.getType() == null) {
+            testSeries.setType("FULL_LENGTH");
+        }
         return testSeriesRepository.save(testSeries);
     }
 
@@ -52,5 +62,17 @@ public class TestSeriesService {
 
     public List<TestSeries> getFeaturedTestSeries() {
         return testSeriesRepository.findByFeaturedTrueAndIsActiveTrueOrderByFeaturedOrderAsc();
+    }
+    
+    @Transactional
+    public void deleteTestSeries(Long id) {
+        testSeriesRepository.deleteById(id);
+    }
+    
+    @Transactional
+    public TestSeries toggleActive(Long id) {
+        TestSeries testSeries = getTestSeriesById(id);
+        testSeries.setIsActive(!testSeries.getIsActive());
+        return testSeriesRepository.save(testSeries);
     }
 }

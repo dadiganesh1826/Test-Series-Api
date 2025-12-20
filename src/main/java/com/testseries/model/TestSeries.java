@@ -47,6 +47,10 @@ public class TestSeries {
     @JoinColumn(name = "category_id")
     private Category category;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "exam_id")
+    private Exam exam;
+
     @Column(length = 20)
     private String difficulty; // EASY, MEDIUM, HARD
 
@@ -58,6 +62,9 @@ public class TestSeries {
 
     @Column(name = "featured_order")
     private Integer featuredOrder;
+
+    @Column(length = 50)
+    private String type = "FULL_LENGTH"; // FULL_LENGTH, SECTIONAL, TOPIC_WISE
 
     @Column(length = 2000)
     private String instructions;

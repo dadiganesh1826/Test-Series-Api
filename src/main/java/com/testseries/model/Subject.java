@@ -20,4 +20,7 @@ public class Subject {
 
     @Column(length = 500)
     private String description;
+
+    @OneToMany(mappedBy = "subject", fetch = FetchType.LAZY)
+    private java.util.List<Topic> topics;
 }
