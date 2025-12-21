@@ -104,4 +104,18 @@ public class TestSeriesController {
                 List<TestSeries> results = testSeriesService.getFeaturedTestSeries();
                 return ResponseEntity.ok(results);
         }
+        
+        @Operation(summary = "Delete test series", description = "Delete a test series by ID")
+        @DeleteMapping("/{id}")
+        public ResponseEntity<Void> deleteTestSeries(@PathVariable Long id) {
+                testSeriesService.deleteTestSeries(id);
+                return ResponseEntity.ok().build();
+        }
+        
+        @Operation(summary = "Toggle test series active status", description = "Activate or deactivate a test series")
+        @PutMapping("/{id}/toggle-active")
+        public ResponseEntity<TestSeries> toggleActive(@PathVariable Long id) {
+                TestSeries updated = testSeriesService.toggleActive(id);
+                return ResponseEntity.ok(updated);
+        }
 }

@@ -39,4 +39,10 @@ public class AnalyticsController {
         AnalyticsResponse analytics = analyticsService.getDetailedAnalytics(examAttemptId);
         return ResponseEntity.ok(analytics);
     }
+
+    @GetMapping("/user/{userId}/weekly-progress")
+    public ResponseEntity<Map<String, Integer>> getWeeklyProgress(@PathVariable Long userId) {
+        Integer count = analyticsService.getWeeklyProgress(userId);
+        return ResponseEntity.ok(Map.of("weeklyProgress", count));
+    }
 }
