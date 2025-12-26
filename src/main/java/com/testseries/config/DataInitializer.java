@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -19,9 +20,18 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final TestSeriesRepository testSeriesRepository;
     private final QuestionRepository questionRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     @Override
     public void run(String... args) {
+        // Fix Schema for Global Questions (allow null test_series_id)
+        try {
+            jdbcTemplate.execute("ALTER TABLE questions MODIFY test_series_id BIGINT NULL");
+            log.info("Schema Update: Extended questions table to allow NULL test_series_id");
+        } catch (Exception e) {
+            log.warn("Schema Update Skipped: " + e.getMessage());
+        }
+
         // Check if data already exists to prevent duplicate initialization
         if (userRepository.count() > 0) {
             log.info("Data already initialized, skipping...");

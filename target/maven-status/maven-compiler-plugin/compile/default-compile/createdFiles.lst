@@ -30,7 +30,6 @@ com\testseries\dto\LoginRequest.class
 com\testseries\model\Topic.class
 com\testseries\service\GamificationService.class
 com\testseries\service\NoteService.class
-com\testseries\service\UserService.class
 com\testseries\service\PracticeService.class
 com\testseries\repository\TestSeriesRepository.class
 com\testseries\repository\CourseRepository.class
@@ -64,14 +63,12 @@ com\testseries\repository\AnswerRepository.class
 com\testseries\service\TestSeriesService.class
 com\testseries\model\PracticeAnswer.class
 com\testseries\service\ExcelUploadService$1.class
-com\testseries\controller\ExamController.class
 com\testseries\model\Subject.class
 com\testseries\controller\TestSeriesController.class
 com\testseries\dto\NoteDTO.class
 com\testseries\model\Badge.class
 com\testseries\controller\AdminController.class
 com\testseries\dto\AnalyticsResponse.class
-com\testseries\controller\UserController.class
 com\testseries\config\DataInitializer.class
 com\testseries\dto\ExamResultResponse.class
 com\testseries\model\PracticeAttempt.class
@@ -79,12 +76,10 @@ com\testseries\repository\BookmarkRepository.class
 com\testseries\repository\NoteRepository.class
 com\testseries\repository\SubjectRepository.class
 com\testseries\model\User.class
-com\testseries\service\ExamService.class
 com\testseries\model\UserBadge.class
 com\testseries\repository\QuestionRepository.class
 com\testseries\dto\AutoSaveRequest$AnswerData.class
 com\testseries\model\TestSeries.class
 com\testseries\repository\PracticeAnswerRepository.class
 com\testseries\model\Exam.class
-com\testseries\controller\AuthController.class
 com\testseries\controller\GamificationController.class

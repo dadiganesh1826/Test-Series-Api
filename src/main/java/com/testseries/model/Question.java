@@ -21,7 +21,7 @@ public class Question {
     @JsonIgnore
     private TestSeries testSeries;
 
-    @Column(nullable = false, length = 1000)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String questionText;
 
     @Column(nullable = false)
@@ -45,7 +45,7 @@ public class Question {
     @Column(name = "negative_marks")
     private Double negativeMarks = 0.0;
 
-    @Column(length = 500)
+    @Column(columnDefinition = "TEXT")
     private String explanation;
 
     @ManyToOne(fetch = FetchType.EAGER)

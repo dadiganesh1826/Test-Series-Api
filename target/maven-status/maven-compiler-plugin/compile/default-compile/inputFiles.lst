@@ -41,6 +41,7 @@ C:\Users\DADI\Desktop\test-series-project\test-series-project\backend\src\main\j
 C:\Users\DADI\Desktop\test-series-project\test-series-project\backend\src\main\java\com\testseries\repository\BadgeRepository.java
 C:\Users\DADI\Desktop\test-series-project\test-series-project\backend\src\main\java\com\testseries\service\GamificationService.java
 C:\Users\DADI\Desktop\test-series-project\test-series-project\backend\src\main\java\com\testseries\repository\ExamAttemptRepository.java
+C:\Users\DADI\Desktop\test-series-project\test-series-project\backend\src\main\java\com\testseries\config\WebMvcConfig.java
 C:\Users\DADI\Desktop\test-series-project\test-series-project\backend\src\main\java\com\testseries\model\Role.java
 C:\Users\DADI\Desktop\test-series-project\test-series-project\backend\src\main\java\com\testseries\repository\AnswerRepository.java
 C:\Users\DADI\Desktop\test-series-project\test-series-project\backend\src\main\java\com\testseries\TestSeriesApplication.java
@@ -70,6 +71,7 @@ C:\Users\DADI\Desktop\test-series-project\test-series-project\backend\src\main\j
 C:\Users\DADI\Desktop\test-series-project\test-series-project\backend\src\main\java\com\testseries\controller\NoteController.java
 C:\Users\DADI\Desktop\test-series-project\test-series-project\backend\src\main\java\com\testseries\dto\AutoSaveRequest.java
 C:\Users\DADI\Desktop\test-series-project\test-series-project\backend\src\main\java\com\testseries\repository\TopicRepository.java
+C:\Users\DADI\Desktop\test-series-project\test-series-project\backend\src\main\java\com\testseries\controller\ImageUploadController.java
 C:\Users\DADI\Desktop\test-series-project\test-series-project\backend\src\main\java\com\testseries\dto\SubmitExamRequest.java
 C:\Users\DADI\Desktop\test-series-project\test-series-project\backend\src\main\java\com\testseries\controller\AuthController.java
 C:\Users\DADI\Desktop\test-series-project\test-series-project\backend\src\main\java\com\testseries\repository\SubjectRepository.java

@@ -75,4 +75,30 @@ public class TestSeriesService {
         testSeries.setIsActive(!testSeries.getIsActive());
         return testSeriesRepository.save(testSeries);
     }
+
+    @Transactional
+    public List<Question> importQuestionsFromBank(Long testSeriesId, List<Long> questionIds) {
+        TestSeries testSeries = getTestSeriesById(testSeriesId);
+        List<Question> originalQuestions = questionRepository.findAllById(questionIds);
+        
+        List<Question> clonedQuestions = originalQuestions.stream().map(q -> {
+            Question newQ = new Question();
+            newQ.setTestSeries(testSeries);
+            newQ.setQuestionText(q.getQuestionText());
+            newQ.setOptionA(q.getOptionA());
+            newQ.setOptionB(q.getOptionB());
+            newQ.setOptionC(q.getOptionC());
+            newQ.setOptionD(q.getOptionD());
+            newQ.setCorrectAnswer(q.getCorrectAnswer());
+            newQ.setMarks(q.getMarks());
+            newQ.setNegativeMarks(q.getNegativeMarks());
+            newQ.setExplanation(q.getExplanation());
+            newQ.setSubject(q.getSubject());
+            newQ.setTopic(q.getTopic());
+            newQ.setStatus(q.getStatus());
+            return newQ;
+        }).toList();
+
+        return questionRepository.saveAll(clonedQuestions);
+    }
 }

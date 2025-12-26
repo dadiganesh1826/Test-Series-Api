@@ -19,6 +19,9 @@ public class TestSeries {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @org.hibernate.annotations.Formula("(SELECT count(*) FROM questions q WHERE q.test_series_id = id)")
+    private Integer questionCount;
+
     @Column(nullable = false)
     private String title;
 

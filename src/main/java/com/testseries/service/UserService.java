@@ -95,4 +95,12 @@ public class UserService {
         user.setLastLoginDate(now);
         userRepository.save(user);
     }
+    @Transactional
+    public void updateLastActivity(Long userId) {
+        // Optimization: Use a custom query to avoid fetching the whole entity if possible,
+        // but for now, fetching is fine as it's not high frequency (every 5 mins).
+        User user = getUserById(userId);
+        user.setLastActivityDate(java.time.LocalDateTime.now());
+        userRepository.save(user);
+    }
 }

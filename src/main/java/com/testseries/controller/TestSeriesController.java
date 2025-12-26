@@ -118,4 +118,12 @@ public class TestSeriesController {
                 TestSeries updated = testSeriesService.toggleActive(id);
                 return ResponseEntity.ok(updated);
         }
+        @Operation(summary = "Import questions from bank", description = "Clones questions from global bank into this test series")
+        @PostMapping("/{id}/questions/import")
+        public ResponseEntity<List<Question>> importQuestions(
+                        @PathVariable Long id,
+                        @RequestBody List<Long> questionIds) {
+                List<Question> imported = testSeriesService.importQuestionsFromBank(id, questionIds);
+                return ResponseEntity.ok(imported);
+        }
 }

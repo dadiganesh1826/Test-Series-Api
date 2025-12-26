@@ -99,13 +99,21 @@ public class AdminController {
         return ResponseEntity.status(401).body(response);
     }
     
+    @Autowired
+    private com.testseries.repository.ExamRepository examRepository;
+
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getDashboardStats() {
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalUsers", userRepository.count());
         stats.put("totalTestSeries", testSeriesRepository.count());
-        stats.put("totalExams", examAttemptRepository.count());
-        stats.put("activeUsers", userRepository.count()); // For now, same as total users
+        stats.put("totalExams", examRepository.count()); // Corrected to count Exam entities (Categories)
+        
+        // Count users active in the last 15 minutes (Real-time)
+        long activeCount = userRepository.countByLastActivityDateAfter(java.time.LocalDateTime.now().minusMinutes(15));
+        // Fallback or combination logic if needed, but this is strictly "Currently Active"
+        stats.put("activeUsers", activeCount);
+        
         return ResponseEntity.ok(stats);
     }
 

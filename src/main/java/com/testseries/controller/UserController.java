@@ -31,4 +31,9 @@ public class UserController {
         Integer weeklyGoal = payload.get("weeklyGoal");
         return ResponseEntity.ok(userService.updateGoal(id, weeklyGoal));
     }
+    @PutMapping("/{id}/activity")
+    public ResponseEntity<Void> updateActivity(@PathVariable Long id) {
+        userService.updateLastActivity(id);
+        return ResponseEntity.ok().build();
+    }
 }

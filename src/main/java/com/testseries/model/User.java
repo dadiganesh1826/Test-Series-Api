@@ -52,6 +52,9 @@ public class User {
     @Column(name = "last_login_date")
     private LocalDateTime lastLoginDate;
 
+    @Column(name = "last_activity_date")
+    private LocalDateTime lastActivityDate;
+
     @Column(name = "weekly_goal")
     private Integer weeklyGoal = 50;
 

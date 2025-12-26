@@ -91,4 +91,9 @@ public class AdminContentController {
             return ResponseEntity.ok(questionRepository.save(q));
         }).orElse(ResponseEntity.notFound().build());
     }
+    @DeleteMapping("/questions/{id}")
+    public ResponseEntity<?> deleteQuestion(@PathVariable Long id) {
+        questionRepository.deleteById(id);
+        return ResponseEntity.ok(Map.of("message", "Question deleted"));
+    }
 }
