@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class PracticeAttempt {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,18 +20,22 @@ public class PracticeAttempt {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @lombok.ToString.Exclude
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "test_series_id", nullable = true)
+    @lombok.ToString.Exclude
     private TestSeries testSeries;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subject_id")
+    @lombok.ToString.Exclude
     private Subject subject;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "topic_id")
+    @lombok.ToString.Exclude
     private Topic topic;
 
     @Column(name = "started_at")

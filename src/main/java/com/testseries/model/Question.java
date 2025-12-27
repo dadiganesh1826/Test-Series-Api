@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Question {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,13 +51,18 @@ public class Question {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "subject_id")
+    @lombok.ToString.Exclude
     private Subject subject;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "topic_id")
+    @lombok.ToString.Exclude
     private Topic topic;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
     private QuestionStatus status = QuestionStatus.APPROVED;
+
+    @Column(length = 20)
+    private String difficulty = "Medium";
 }

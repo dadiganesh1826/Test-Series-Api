@@ -11,8 +11,14 @@ import com.testseries.model.QuestionStatus;
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, Long> {
     List<Question> findByTestSeriesId(Long testSeriesId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT q FROM Question q WHERE q.topic.id = :topicId")
+    List<Question> findByTopicId(Long topicId);
+
     List<Question> findByTestSeriesIsNull();
+
     List<Question> findByTestSeriesIsNullAndStatus(QuestionStatus status);
+
     List<Question> findByStatus(QuestionStatus status);
 
     @org.springframework.data.jpa.repository.Query(value = "SELECT * FROM questions q WHERE " +

@@ -25,9 +25,21 @@ public class AdminUploadController {
     private final ExcelUploadService excelUploadService;
 
     @PostMapping("/questions/{testSeriesId}")
-    public ResponseEntity<?> uploadQuestions(@PathVariable Long testSeriesId, @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<?> uploadQuestions(@PathVariable Long testSeriesId,
+            @RequestParam("file") MultipartFile file) {
         try {
             int count = excelUploadService.uploadQuestions(testSeriesId, file);
+            return ResponseEntity.ok(Map.of("message", "Successfully uploaded " + count + " questions"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/questions/topic/{topicId}")
+    public ResponseEntity<?> uploadQuestionsForTopic(@PathVariable Long topicId,
+            @RequestParam("file") MultipartFile file) {
+        try {
+            int count = excelUploadService.uploadQuestionsForTopic(topicId, file);
             return ResponseEntity.ok(Map.of("message", "Successfully uploaded " + count + " questions"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -43,15 +55,16 @@ public class AdminUploadController {
         // Header Row
         Row header = sheet.createRow(0);
         String[] columns = {
-            "Question Text (Required)", 
-            "Option A (Required)", 
-            "Option B (Required)", 
-            "Option C (Required)", 
-            "Option D (Required)", 
-            "Correct Option (A/B/C/D)", 
-            "Explanation", 
-            "Marks (Default: 1)", 
-            "Negative Marks (Default: 0)"
+                "Question Text (Required)",
+                "Option A (Required)",
+                "Option B (Required)",
+                "Option C (Required)",
+                "Option D (Required)",
+                "Correct Option (A/B/C/D)",
+                "Explanation",
+                "Marks (Default: 1)",
+                "Negative Marks (Default: 0)",
+                "Difficulty (Easy/Medium/Hard)"
         };
 
         CellStyle headerStyle = workbook.createCellStyle();
@@ -77,6 +90,7 @@ public class AdminUploadController {
         sample.createCell(6).setCellValue("Paris is the capital and most populous city of France.");
         sample.createCell(7).setCellValue(1);
         sample.createCell(8).setCellValue(0); // 0 negative marks
+        sample.createCell(9).setCellValue("Medium");
 
         workbook.write(stream);
         workbook.close();
@@ -85,7 +99,8 @@ public class AdminUploadController {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=questions_template.xlsx")
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .contentType(
+                        MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(resource);
     }
 }

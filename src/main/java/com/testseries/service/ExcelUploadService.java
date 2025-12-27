@@ -22,15 +22,31 @@ public class ExcelUploadService {
 
     private final QuestionRepository questionRepository;
     private final TestSeriesRepository testSeriesRepository;
+    private final com.testseries.repository.TopicRepository topicRepository;
 
     public int uploadQuestions(Long testSeriesId, MultipartFile file) throws IOException {
         TestSeries testSeries = testSeriesRepository.findById(testSeriesId)
                 .orElseThrow(() -> new RuntimeException("Test Series not found"));
 
         List<Question> questions = parseExcelFile(file.getInputStream());
-        
+
         for (Question q : questions) {
             q.setTestSeries(testSeries);
+        }
+
+        questionRepository.saveAll(questions);
+        return questions.size();
+    }
+
+    public int uploadQuestionsForTopic(Long topicId, MultipartFile file) throws IOException {
+        com.testseries.model.Topic topic = topicRepository.findById(topicId)
+                .orElseThrow(() -> new RuntimeException("Topic not found"));
+
+        List<Question> questions = parseExcelFile(file.getInputStream());
+
+        for (Question q : questions) {
+            q.setTopic(topic);
+            q.setSubject(topic.getSubject());
         }
 
         questionRepository.saveAll(questions);
@@ -46,7 +62,7 @@ public class ExcelUploadService {
         int rowNumber = 0;
         while (rows.hasNext()) {
             Row currentRow = rows.next();
-            
+
             // Skip header
             if (rowNumber == 0) {
                 rowNumber++;
@@ -54,7 +70,8 @@ public class ExcelUploadService {
             }
 
             // Stop if row is empty
-            if (isRowEmpty(currentRow)) break;
+            if (isRowEmpty(currentRow))
+                break;
 
             try {
                 Question question = new Question();
@@ -73,6 +90,21 @@ public class ExcelUploadService {
                 String negMarksStr = getCellValue(currentRow, 8);
                 question.setNegativeMarks(negMarksStr.isEmpty() ? 0.0 : Double.parseDouble(negMarksStr));
 
+                // Difficulty (Optional - Defaults to Medium)
+                String difficulty = getCellValue(currentRow, 9);
+                if (difficulty == null || difficulty.trim().isEmpty()) {
+                    question.setDifficulty("Medium");
+                } else {
+                    // Normalize input (e.g., "easy " -> "Easy")
+                    String normalized = difficulty.trim().toLowerCase();
+                    if (normalized.equals("easy"))
+                        question.setDifficulty("Easy");
+                    else if (normalized.equals("hard"))
+                        question.setDifficulty("Hard");
+                    else
+                        question.setDifficulty("Medium");
+                }
+
                 questions.add(question);
             } catch (Exception e) {
                 System.err.println("Error parsing row " + rowNumber + ": " + e.getMessage());
@@ -80,26 +112,32 @@ public class ExcelUploadService {
             }
             rowNumber++;
         }
-        
+
         workbook.close();
         return questions;
     }
-    
+
     // Helper to get String value safely
     private String getCellValue(Row row, int cellIndex) {
         Cell cell = row.getCell(cellIndex, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
-        if (cell == null) return "";
-        
+        if (cell == null)
+            return "";
+
         switch (cell.getCellType()) {
-            case STRING: return cell.getStringCellValue();
-            case NUMERIC: return String.valueOf(cell.getNumericCellValue());
-            case BOOLEAN: return String.valueOf(cell.getBooleanCellValue());
-            default: return "";
+            case STRING:
+                return cell.getStringCellValue();
+            case NUMERIC:
+                return String.valueOf(cell.getNumericCellValue());
+            case BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue());
+            default:
+                return "";
         }
     }
 
     private boolean isRowEmpty(Row row) {
-        if (row == null) return true;
+        if (row == null)
+            return true;
         for (int c = row.getFirstCellNum(); c < row.getLastCellNum(); c++) {
             Cell cell = row.getCell(c);
             if (cell != null && cell.getCellType() != CellType.BLANK)
