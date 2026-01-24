@@ -29,7 +29,8 @@ public class UserService {
 
         user = userRepository.save(user);
 
-        return new UserResponse(user.getId(), user.getName(), user.getEmail());
+        String role = user.getRole() != null ? user.getRole().toString() : "USER";
+        return new UserResponse(user.getId(), user.getName(), user.getEmail(), role);
     }
 
     @Transactional
@@ -43,7 +44,8 @@ public class UserService {
 
         updateStreak(user);
 
-        return new UserResponse(user.getId(), user.getName(), user.getEmail());
+        String role = user.getRole() != null ? user.getRole().toString() : "USER";
+        return new UserResponse(user.getId(), user.getName(), user.getEmail(), role);
     }
 
     public User getUserById(Long id) {
@@ -54,10 +56,14 @@ public class UserService {
     @Transactional
     public User updateProfile(Long userId, User updatedUser) {
         User user = getUserById(userId);
-        if (updatedUser.getBio() != null) user.setBio(updatedUser.getBio());
-        if (updatedUser.getPhoneNumber() != null) user.setPhoneNumber(updatedUser.getPhoneNumber());
-        if (updatedUser.getTargetExam() != null) user.setTargetExam(updatedUser.getTargetExam());
-        if (updatedUser.getProfilePicture() != null) user.setProfilePicture(updatedUser.getProfilePicture());
+        if (updatedUser.getBio() != null)
+            user.setBio(updatedUser.getBio());
+        if (updatedUser.getPhoneNumber() != null)
+            user.setPhoneNumber(updatedUser.getPhoneNumber());
+        if (updatedUser.getTargetExam() != null)
+            user.setTargetExam(updatedUser.getTargetExam());
+        if (updatedUser.getProfilePicture() != null)
+            user.setProfilePicture(updatedUser.getProfilePicture());
         return userRepository.save(user);
     }
 
@@ -95,9 +101,11 @@ public class UserService {
         user.setLastLoginDate(now);
         userRepository.save(user);
     }
+
     @Transactional
     public void updateLastActivity(Long userId) {
-        // Optimization: Use a custom query to avoid fetching the whole entity if possible,
+        // Optimization: Use a custom query to avoid fetching the whole entity if
+        // possible,
         // but for now, fetching is fine as it's not high frequency (every 5 mins).
         User user = getUserById(userId);
         user.setLastActivityDate(java.time.LocalDateTime.now());
