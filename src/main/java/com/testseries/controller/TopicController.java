@@ -16,6 +16,12 @@ public class TopicController {
     @Autowired
     private TopicRepository topicRepository;
 
+    @Autowired
+    private com.testseries.repository.PracticeAttemptRepository practiceAttemptRepository;
+
+    @Autowired
+    private com.testseries.repository.PracticeAnswerRepository practiceAnswerRepository;
+
     @GetMapping
     public ResponseEntity<List<Topic>> getAllTopics() {
         return ResponseEntity.ok(topicRepository.findAll());
@@ -39,6 +45,11 @@ public class TopicController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTopic(@PathVariable Long id) {
+        // First delete dependencies to avoid Constraint Violation
+        practiceAnswerRepository.deleteByTopicId(id);
+        practiceAttemptRepository.deleteByTopicId(id);
+        questionRepository.deleteByTopicId(id);
+
         topicRepository.deleteById(id);
         return ResponseEntity.ok().build();
     }

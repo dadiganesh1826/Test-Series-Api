@@ -15,6 +15,11 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     @org.springframework.data.jpa.repository.Query("SELECT q FROM Question q WHERE q.topic.id = :topicId")
     List<Question> findByTopicId(Long topicId);
 
+    @org.springframework.transaction.annotation.Transactional
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM Question q WHERE q.topic.id = :topicId")
+    void deleteByTopicId(Long topicId);
+
     List<Question> findByTestSeriesIsNull();
 
     List<Question> findByTestSeriesIsNullAndStatus(QuestionStatus status);

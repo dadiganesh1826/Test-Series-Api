@@ -59,6 +59,17 @@ public class PracticeAttempt {
     @Column(name = "accuracy")
     private Double accuracy = 0.0;
 
+    @Column(name = "limit_seconds")
+    private Integer limitSeconds;
+
+    public Integer getLimitSeconds() {
+        return limitSeconds;
+    }
+
+    public void setLimitSeconds(Integer limitSeconds) {
+        this.limitSeconds = limitSeconds;
+    }
+
     @PrePersist
     protected void onCreate() {
         startedAt = LocalDateTime.now();

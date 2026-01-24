@@ -24,4 +24,15 @@ public class Topic {
     @com.fasterxml.jackson.annotation.JsonBackReference
     @lombok.ToString.Exclude
     private Subject subject;
+
+    @Column(name = "time_per_question")
+    private Integer timePerQuestion = 60; // Default 60 seconds
+
+    public Integer getTimePerQuestion() {
+        return timePerQuestion;
+    }
+
+    public void setTimePerQuestion(Integer timePerQuestion) {
+        this.timePerQuestion = timePerQuestion;
+    }
 }

@@ -2,6 +2,7 @@ com\testseries\model\Bookmark.class
 com\testseries\repository\ExamAttemptRepository.class
 com\testseries\controller\LeaderboardController.class
 com\testseries\controller\NoteController.class
+com\testseries\controller\TopicController.class
 com\testseries\dto\LeaderboardEntryDTO.class
 com\testseries\controller\AdminUploadController.class
 com\testseries\dto\QuestionStatusDTO.class

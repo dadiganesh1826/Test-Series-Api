@@ -39,7 +39,7 @@ public class PracticeService {
     public PracticeAttempt startPractice(Long userId, Long testSeriesId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         TestSeries testSeries = testSeriesRepository.findById(testSeriesId)
                 .orElseThrow(() -> new RuntimeException("Test series not found"));
 
@@ -47,8 +47,9 @@ public class PracticeService {
         attempt.setUser(user);
         attempt.setTestSeries(testSeries);
         attempt.setTotalQuestions(testSeries.getQuestions().size());
+        attempt.setLimitSeconds(testSeries.getDurationMinutes() * 60);
         attempt.setIsCompleted(false);
-        
+
         return practiceAttemptRepository.save(attempt);
     }
 
@@ -75,9 +76,13 @@ public class PracticeService {
                 request.getSubjectId(),
                 request.getTopicId(),
                 request.getDifficulty(),
-                request.getQuestionCount()
-        );
+                request.getQuestionCount());
 
+        int timePerQuestion = (attempt.getTopic() != null && attempt.getTopic().getTimePerQuestion() != null)
+                ? attempt.getTopic().getTimePerQuestion()
+                : 60;
+
+        attempt.setLimitSeconds(questions.size() * timePerQuestion);
         attempt.setTotalQuestions(questions.size());
         attempt = practiceAttemptRepository.save(attempt);
 
@@ -89,7 +94,8 @@ public class PracticeService {
     }
 
     @Transactional
-    public Map<String, Object> submitAnswer(Long practiceAttemptId, Long questionId, String selectedAnswer, Integer timeSpent) {
+    public Map<String, Object> submitAnswer(Long practiceAttemptId, Long questionId, String selectedAnswer,
+            Integer timeSpent) {
         PracticeAttempt attempt = practiceAttemptRepository.findById(practiceAttemptId)
                 .orElseThrow(() -> new RuntimeException("Practice attempt not found"));
 
@@ -129,13 +135,13 @@ public class PracticeService {
         feedback.put("correctAnswer", question.getCorrectAnswer());
         feedback.put("explanation", question.getExplanation());
         feedback.put("selectedAnswer", selectedAnswer);
-        
+
         return feedback;
     }
 
     private void updateAttemptStats(PracticeAttempt attempt) {
         List<PracticeAnswer> answers = practiceAnswerRepository.findByPracticeAttemptId(attempt.getId());
-        
+
         int attempted = answers.size();
         long correct = answers.stream().filter(PracticeAnswer::getIsCorrect).count();
         double accuracy = attempted > 0 ? (correct * 100.0 / attempted) : 0.0;
@@ -154,7 +160,7 @@ public class PracticeService {
 
         attempt.setIsCompleted(true);
         attempt.setCompletedAt(LocalDateTime.now());
-        
+
         return practiceAttemptRepository.save(attempt);
     }
 
