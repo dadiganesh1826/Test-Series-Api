@@ -37,68 +37,106 @@ public class AdminController {
         activityLogRepository.save(log);
     }
 
+    @PostMapping("/setup")
+    public ResponseEntity<Map<String, String>> setupDefaultAdmin() {
+        // Check if any admin already exists
+        long adminCount = userRepository.findAll().stream()
+                .filter(u -> u.getRole() != null &&
+                        (u.getRole() == com.testseries.model.Role.SUPER_ADMIN ||
+                                u.getRole() == com.testseries.model.Role.CONTENT_ADMIN ||
+                                u.getRole() == com.testseries.model.Role.REVIEWER ||
+                                u.getRole() == com.testseries.model.Role.SUPPORT_ADMIN))
+                .count();
+
+        Map<String, String> response = new HashMap<>();
+
+        if (adminCount > 0) {
+            response.put("message", "Admin user already exists. Setup not needed.");
+            response.put("status", "skipped");
+            return ResponseEntity.ok(response);
+        }
+
+        // Create default admin
+        User admin = new User();
+        admin.setEmail("admin@test.com");
+        admin.setName("Super Admin");
+        admin.setPassword("admin123");
+        admin.setRole(com.testseries.model.Role.SUPER_ADMIN);
+        admin.setIsBlocked(false);
+        userRepository.save(admin);
+
+        logActivity("admin@test.com", "SETUP", "Default admin user created");
+
+        response.put("message", "Default admin user created successfully!");
+        response.put("email", "admin@test.com");
+        response.put("password", "admin123");
+        response.put("status", "created");
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/login")
     public ResponseEntity<AdminLoginResponse> adminLogin(@RequestBody AdminLoginRequest request) {
         // Authenticate against database
         Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
-        
+
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             // Check password, Role, and Block status
-            if (user.getPassword().equals(request.getPassword()) && 
-               (user.getIsBlocked() == null || !user.getIsBlocked()) &&
-               (user.getRole() == com.testseries.model.Role.SUPER_ADMIN || 
-                user.getRole() == com.testseries.model.Role.CONTENT_ADMIN ||
-                user.getRole() == com.testseries.model.Role.REVIEWER || 
-                user.getRole() == com.testseries.model.Role.SUPPORT_ADMIN)) {
-                
+            if (user.getPassword().equals(request.getPassword()) &&
+                    (user.getIsBlocked() == null || !user.getIsBlocked()) &&
+                    (user.getRole() == com.testseries.model.Role.SUPER_ADMIN ||
+                            user.getRole() == com.testseries.model.Role.CONTENT_ADMIN ||
+                            user.getRole() == com.testseries.model.Role.REVIEWER ||
+                            user.getRole() == com.testseries.model.Role.SUPPORT_ADMIN)) {
+
                 logActivity(user.getEmail(), "LOGIN", "Admin logged in");
-                
+
                 AdminLoginResponse response = new AdminLoginResponse();
                 response.setSuccess(true);
                 response.setToken("admin-token-" + UUID.randomUUID().toString());
-                
+
                 Map<String, String> admin = new HashMap<>();
                 admin.put("email", user.getEmail());
                 admin.put("name", user.getName());
                 admin.put("role", user.getRole().toString());
                 response.setAdmin(admin);
-                
+
                 return ResponseEntity.ok(response);
             }
         }
-        
-        // Fallback for initial setup if no DB admin exists but credentials match default
+
+        // Fallback for initial setup if no DB admin exists but credentials match
+        // default
         if ("admin@test.com".equals(request.getEmail()) && "admin123".equals(request.getPassword())) {
-             // Create this admin in DB if not exists
-             if (userOpt.isEmpty()) {
-                 User admin = new User();
-                 admin.setEmail("admin@test.com");
-                 admin.setName("Super Admin");
-                 admin.setPassword("admin123");
-                 admin.setRole(com.testseries.model.Role.SUPER_ADMIN);
-                 userRepository.save(admin);
-             }
-             
-             logActivity("admin@test.com", "LOGIN", "Default Admin logged in");
-             
-             AdminLoginResponse response = new AdminLoginResponse();
-             response.setSuccess(true);
-             response.setToken("admin-token-" + UUID.randomUUID().toString());
-             Map<String, String> admin = new HashMap<>();
-             admin.put("email", "admin@test.com");
-             admin.put("name", "Super Admin");
-             admin.put("role", "SUPER_ADMIN");
-             response.setAdmin(admin);
-             return ResponseEntity.ok(response);
+            // Create this admin in DB if not exists
+            if (userOpt.isEmpty()) {
+                User admin = new User();
+                admin.setEmail("admin@test.com");
+                admin.setName("Super Admin");
+                admin.setPassword("admin123");
+                admin.setRole(com.testseries.model.Role.SUPER_ADMIN);
+                userRepository.save(admin);
+            }
+
+            logActivity("admin@test.com", "LOGIN", "Default Admin logged in");
+
+            AdminLoginResponse response = new AdminLoginResponse();
+            response.setSuccess(true);
+            response.setToken("admin-token-" + UUID.randomUUID().toString());
+            Map<String, String> admin = new HashMap<>();
+            admin.put("email", "admin@test.com");
+            admin.put("name", "Super Admin");
+            admin.put("role", "SUPER_ADMIN");
+            response.setAdmin(admin);
+            return ResponseEntity.ok(response);
         }
-        
+
         AdminLoginResponse response = new AdminLoginResponse();
         response.setSuccess(false);
         response.setMessage("Invalid credentials or unauthorized");
         return ResponseEntity.status(401).body(response);
     }
-    
+
     @Autowired
     private com.testseries.repository.ExamRepository examRepository;
 
@@ -108,12 +146,13 @@ public class AdminController {
         stats.put("totalUsers", userRepository.count());
         stats.put("totalTestSeries", testSeriesRepository.count());
         stats.put("totalExams", examRepository.count()); // Corrected to count Exam entities (Categories)
-        
+
         // Count users active in the last 15 minutes (Real-time)
         long activeCount = userRepository.countByLastActivityDateAfter(java.time.LocalDateTime.now().minusMinutes(15));
-        // Fallback or combination logic if needed, but this is strictly "Currently Active"
+        // Fallback or combination logic if needed, but this is strictly "Currently
+        // Active"
         stats.put("activeUsers", activeCount);
-        
+
         return ResponseEntity.ok(stats);
     }
 
@@ -139,14 +178,17 @@ public class AdminController {
     public ResponseEntity<List<Map<String, String>>> getRecentActivity() {
         List<Map<String, String>> activities = new ArrayList<>();
         List<com.testseries.model.AdminActivityLog> logs = activityLogRepository.findTop10ByOrderByTimestampDesc();
-        
+
         for (com.testseries.model.AdminActivityLog log : logs) {
             Map<String, String> activity = new HashMap<>();
             activity.put("icon", "📝"); // Default icon
-            if (log.getAction().contains("LOGIN")) activity.put("icon", "👤");
-            if (log.getAction().contains("DELETE")) activity.put("icon", "🗑️");
-            if (log.getAction().contains("BLOCK")) activity.put("icon", "🚫");
-            
+            if (log.getAction().contains("LOGIN"))
+                activity.put("icon", "👤");
+            if (log.getAction().contains("DELETE"))
+                activity.put("icon", "🗑️");
+            if (log.getAction().contains("BLOCK"))
+                activity.put("icon", "🚫");
+
             activity.put("description", log.getDescription());
             activity.put("timestamp", log.getTimestamp().toString());
             activities.add(activity);
@@ -157,16 +199,16 @@ public class AdminController {
     @GetMapping("/analytics/user-growth")
     public ResponseEntity<List<Map<String, Object>>> getUserGrowth() {
         List<Map<String, Object>> growthData = new ArrayList<>();
-        // In a real app, use a proper SQL Group By query. 
+        // In a real app, use a proper SQL Group By query.
         // Simulating for now as we might not have much data
         java.time.LocalDate today = java.time.LocalDate.now();
-        
+
         for (int i = 6; i >= 0; i--) {
             java.time.LocalDate date = today.minusDays(i);
             long count = userRepository.findAll().stream()
-                .filter(u -> u.getCreatedAt() != null && u.getCreatedAt().toLocalDate().equals(date))
-                .count();
-                
+                    .filter(u -> u.getCreatedAt() != null && u.getCreatedAt().toLocalDate().equals(date))
+                    .count();
+
             Map<String, Object> dataPoint = new HashMap<>();
             dataPoint.put("date", date.toString());
             dataPoint.put("users", count);
@@ -180,7 +222,7 @@ public class AdminController {
         List<User> users = userRepository.findAll();
         return ResponseEntity.ok(users);
     }
-    
+
     @DeleteMapping("/users/{userId}")
     public ResponseEntity<Map<String, String>> deleteUser(@PathVariable Long userId) {
         try {
@@ -195,7 +237,7 @@ public class AdminController {
             return ResponseEntity.status(500).body(response);
         }
     }
-    
+
     @PutMapping("/users/{userId}/toggle-active")
     public ResponseEntity<Map<String, String>> toggleUserActive(@PathVariable Long userId) {
         try {
@@ -209,11 +251,13 @@ public class AdminController {
                     user.setIsBlocked(!user.getIsBlocked());
                 }
                 userRepository.save(user);
-                
-                logActivity("admin", "BLOCK_USER", (user.getIsBlocked() ? "Blocked" : "Unblocked") + " user: " + user.getEmail());
-                
+
+                logActivity("admin", "BLOCK_USER",
+                        (user.getIsBlocked() ? "Blocked" : "Unblocked") + " user: " + user.getEmail());
+
                 Map<String, String> response = new HashMap<>();
-                response.put("message", user.getIsBlocked() ? "User blocked successfully" : "User unblocked successfully");
+                response.put("message",
+                        user.getIsBlocked() ? "User blocked successfully" : "User unblocked successfully");
                 response.put("isBlocked", user.getIsBlocked().toString());
                 return ResponseEntity.ok(response);
             }
@@ -226,6 +270,7 @@ public class AdminController {
             return ResponseEntity.status(500).body(response);
         }
     }
+
     @GetMapping("/test-series")
     public ResponseEntity<List<com.testseries.model.TestSeries>> getAllTestSeries() {
         return ResponseEntity.ok(testSeriesRepository.findAll());
@@ -235,7 +280,7 @@ public class AdminController {
     public ResponseEntity<List<Map<String, Object>>> getTestPerformance() {
         List<Map<String, Object>> performance = new ArrayList<>();
         List<Object[]> stats = examAttemptRepository.findTestPerformanceStats();
-        
+
         for (Object[] row : stats) {
             Map<String, Object> data = new HashMap<>();
             data.put("name", row[0]); // title
@@ -243,24 +288,24 @@ public class AdminController {
             data.put("avgScore", row[2] != null ? Math.round((Double) row[2]) : 0); // avg
             performance.add(data);
         }
-        
+
         return ResponseEntity.ok(performance);
     }
-    
+
     @GetMapping("/analytics/top-scorers")
     public ResponseEntity<List<Map<String, Object>>> getTopScorers() {
         List<Map<String, Object>> leaderboard = new ArrayList<>();
         List<com.testseries.dto.LeaderboardEntryDTO> topScorers = examAttemptRepository.findGlobalLeaderboard();
-        
+
         // Take top 5
         topScorers.stream().limit(5).forEach(dto -> {
-             Map<String, Object> scorer = new HashMap<>();
-             scorer.put("name", dto.getUserName());
-             scorer.put("score", dto.getTotalScore());
-             scorer.put("testsTaken", dto.getTestsTaken());
-             leaderboard.add(scorer);
+            Map<String, Object> scorer = new HashMap<>();
+            scorer.put("name", dto.getUserName());
+            scorer.put("score", dto.getTotalScore());
+            scorer.put("testsTaken", dto.getTestsTaken());
+            leaderboard.add(scorer);
         });
-        
+
         return ResponseEntity.ok(leaderboard);
     }
 
